@@ -162,3 +162,68 @@ console.log(input.value); // Truy cập an toàn thuộc tính của HTMLInputEl
 const data: string = "hello";
 (data as any).customMethod(); // Bỏ qua type check (dễ crash lúc chạy nếu hàm không tồn tại)
 ```
+
+- Non-null Assertion Operator (`!`) : cam đoan với trình biên dịch rằng giá trị chắc chắn không phải `null` hoặc `undefined`
+
+```typescript
+function processName(name: string | null) {
+  const cleanName: string = name!; // Bỏ qua cảnh báo null/undefined
+  console.log(cleanName.toUpperCase());
+}
+```
+
+- `satisfies` Operator : kiểm tra biến khớp với kiểu/interface mong muốn nhưng KHÔNG làm mất đi (widen) kiểu dữ liệu literal cụ thể
+
+```typescript
+type Colors = "red" | "green" | "blue";
+type RGB = [red: number, green: number, blue: number];
+
+const palette = {
+  red: [255, 0, 0],
+  green: "#00ff00",
+  blue: [0, 0, 255],
+} satisfies Record<Colors, string | RGB>;
+
+// Giữ nguyên kiểu cụ thể: palette.green biết chính xác là string, gọi được hàm string:
+console.log(palette.green.toUpperCase()); 
+// palette.red biết chính xác là mảng RGB, gọi được hàm mảng:
+palette.red.map(x => x * 2);
+```
+
+---
+
+### Type Inference & Type Compatibility
+
+- Type Inference : TypeScript tự động suy luận kiểu dữ liệu dựa trên giá trị khởi tạo hoặc giá trị trả về của hàm
+
+```typescript
+let age = 25; // Inferred là number
+let message = "hello"; // Inferred là string
+function add(a: number, b: number) {
+  return a + b; // Inferred kiểu trả về là number
+}
+```
+
+- Type Compatibility (Structural Typing) : TypeScript kiểm tra sự tương thích dựa trên cấu trúc (hình dạng - shape) của đối tượng chứ không dựa trên tên kiểu dữ liệu (nếu nó đi như vịt, kêu như vịt thì nó là vịt)
+
+```typescript
+interface Point2D {
+  x: number;
+  y: number;
+}
+
+interface Point3D {
+  x: number;
+  y: number;
+  z: number;
+}
+
+let p2: Point2D;
+let p3: Point3D = { x: 10, y: 20, z: 30 };
+
+// Hợp lệ: p3 có đủ các thuộc tính mà Point2D yêu cầu (x và y)
+p2 = p3; 
+
+// Không hợp lệ: p2 thiếu thuộc tính 'z' mà Point3D yêu cầu
+// p3 = p2; // Error: Property 'z' is missing in type 'Point2D'
+```
